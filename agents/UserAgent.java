@@ -37,22 +37,15 @@ public class UserAgent extends GuiAgent {
     LocalDate proposedDate;
             /**gui window*/
     UserAgentWindow window;
-
+    Random hasard = new Random();
     Product productToRepair;
     @Override
     public void setup()
     {
         this.window = new UserAgentWindow(getLocalName(),this);
         window.setButtonActivated(true);
-        //add a random skill
-        Random hasard = new Random();
-        skill = hasard.nextInt(3);
-        budget = hasard.nextInt(100-50) + 50;
-        dayTime = hasard.nextInt(15-7) + 7;
-        println("hello, I have a skill = " + skill);
-        println("I have a budget = " + budget);
-        println("I have a time = " + dayTime);
         //add some products choosen randomly in the list Product.getListProducts()
+        skill = hasard.nextInt(3);
         products = new ArrayList<>();
         int nbTypeOfProducts = ProductType.values().length;
         int nbPoductsByType = Product.NB_PRODS / nbTypeOfProducts;
@@ -72,6 +65,11 @@ public class UserAgent extends GuiAgent {
     @Override
     public void onGuiEvent(GuiEvent evt) {
         if (evt.getType() == UserAgentWindow.OK_EVENT) {
+            budget = hasard.nextInt(400-100) + 100;
+            dayTime = hasard.nextInt(15-7) + 7;
+            println("hello, I have a skill = " + skill);
+            println("I have a budget = " + budget + "€");
+            println("I have a time = " + dayTime + " jours");
             var partStores = AgentServicesTools.searchAgents(this, "repair", "partstore");
             var coffees = AgentServicesTools.searchAgents(this, "repair", "coffee");
             var distributors = AgentServicesTools.searchAgents(this, "repair", "distributor");
@@ -229,9 +227,13 @@ public class UserAgent extends GuiAgent {
 
                 }
                 if (cheapestDistributor != null) {
-                    buyProduct(cheapestDistributor, selectedProductType);
-                    budget = budget - lowestProductPrice;
-                    println("J'ai acheté le produit complet : " + partToRepair.getName() + " à " + cheapestDistributor.getLocalName() + ", il me reste " + String.format("%.2f",budget) + "€");
+                    if (lowestProductPrice < budget) {
+                        buyProduct(cheapestDistributor, selectedProductType);
+                        budget = budget - lowestProductPrice;
+                        println("J'ai acheté le produit complet : " + partToRepair.getName() + " à " + cheapestDistributor.getLocalName() + ", il me reste " + String.format("%.2f",budget) + "€");
+                    } else {
+                        println("Je n'ai pas le budget pour acheter le produit complet, j'abandonne...");
+                    }
                 }
             }
         }
