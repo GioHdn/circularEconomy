@@ -98,18 +98,10 @@ public class PartStoreAgent extends AgentWindowed {
         ACLMessage replyMessage = new ACLMessage(ACLMessage.INFORM);
         replyMessage.addReceiver(userAgent);
         replyMessage.setConversationId("Ask-Part-Price");
-        if (partPrice > 0) {
-            try {
-                replyMessage.setContentObject(partPrice);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        } else if (partPrice == -1) {
-            try {
-                replyMessage.setContentObject(partPrice);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            replyMessage.setContentObject(partPrice);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         send(replyMessage);
     }

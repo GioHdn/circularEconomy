@@ -1,6 +1,7 @@
 package handsOn.circularEconomy.agents;
 
 import handsOn.circularEconomy.data.Part;
+import handsOn.circularEconomy.data.Product;
 import handsOn.circularEconomy.data.ProductType;
 import jade.core.AID;
 import jade.core.AgentServicesTools;
@@ -12,13 +13,14 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 
 import java.awt.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
 public class DistributorAgent extends AgentWindowed {
-    List<ProductType> products;
+    List<Product> products;
 
     @Override
     public void setup() {
@@ -41,14 +43,18 @@ public class DistributorAgent extends AgentWindowed {
         for (ProductType type : ProductType.values()) {
             double randomDiscount = maxDiscountPercentage * Math.random();
             double adjustedPrice = type.getStandardPrice() * (1.0 + randomDiscount);
-            // Modify the standardPrice directly in the ProductType
-            type.standardPrice = adjustedPrice;
-            products.add(type);
+
+            // Créer une nouvelle instance de Product avec le prix ajusté
+            Product adjustedProduct = new Product(type + "-" + products.size(), type);
+            adjustedProduct.price = adjustedPrice;
+
+            // Ajouter la nouvelle instance à la liste
+            products.add(adjustedProduct);
         }
 
         println("I have these products : ");
         products.forEach(p -> {
-            println("\t" + p + " - Price: " + String.format("%.2f",p.getStandardPrice()) + " €");
+            println("\t" + p.getType() + " - Price: " + String.format("%.2f", p.getPrice()) + " €");
         });
 
         addBehaviour(new CyclicBehaviour(this) {
@@ -76,7 +82,7 @@ public class DistributorAgent extends AgentWindowed {
                         if (removeSoldProduct(requestedProduct)) {
                             println("Product " + requestedProduct + " sold to " + message.getSender().getLocalName());
                         } else {
-                            println("Error: Product " + requestedProduct + " not found in the part store");
+                            println("Error: Product " + requestedProduct + " not found in the distributor");
                         }
                     }
                 } else {
@@ -85,10 +91,10 @@ public class DistributorAgent extends AgentWindowed {
             }
         });
     }
-    public double getProductPrice(ProductType product) {
-        for (ProductType distributorProduct : products) {
-            if (Objects.equals(distributorProduct, product)) {
-                return distributorProduct.getStandardPrice();
+    public double getProductPrice(ProductType productType) {
+        for (Product product : products) {
+            if (Objects.equals(product.getType(), productType)) {
+                return product.getPrice();
             }
         }
         return -1; // Retourne -1 si le produit n'est pas disponible
@@ -98,16 +104,16 @@ public class DistributorAgent extends AgentWindowed {
         ACLMessage replyMessage = new ACLMessage(ACLMessage.INFORM);
         replyMessage.addReceiver(userAgent);
         replyMessage.setConversationId("Ask-Product-Price");
-        if (productPrice >= 0) {
-            replyMessage.setContent(": price for the requested product : " + String.valueOf(productPrice));
-        } else {
-            replyMessage.setContent(": does not have the requested product.");
+        try {
+            replyMessage.setContentObject(productPrice);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         send(replyMessage);
     }
 
     private boolean removeSoldProduct(ProductType soldProduct) {
-        return products.removeIf(ProductType -> Objects.equals(products, soldProduct));
+        return products.removeIf(ProductType -> Objects.equals(ProductType, soldProduct));
     }
 
 }

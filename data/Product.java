@@ -21,7 +21,7 @@ public class Product implements Serializable {
     /**type of the product*/
     ProductType type;
     /***price of the product (a little greater than the standard price)*/
-    double price;
+    public double price;
     /**nb of products to create*/
     public static final int NB_PRODS = 100;
     /**list of products*/
@@ -30,7 +30,7 @@ public class Product implements Serializable {
     Part faultyPart;
 
     /**constructor. set the name, the type and the price (between 0% and 20% more than the standard price)*/
-    Product(String name, ProductType type){
+    public Product(String name, ProductType type){
         this.name = name;
         this.type = type;
         price = type.getStandardPrice()*(1.+Math.random()*.2);

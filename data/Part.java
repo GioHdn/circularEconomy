@@ -58,7 +58,7 @@ public class Part implements Serializable {
                 int nbParts = type.nbParts;
                 double partPrice = 0;
                 Random hasard = new Random();
-                int breakdownLevel = hasard.nextInt(5);
+                int breakdownLevel = 4;
                 for(int i=nbParts; i>1; i--) {
                     partPrice = partsPrice * 2/3;
                     partsPrice = partsPrice - partPrice;

@@ -46,7 +46,7 @@ public class UserAgent extends GuiAgent {
         window.setButtonActivated(true);
         //add a random skill
         Random hasard = new Random();
-        skill = hasard.nextInt(1);
+        skill = hasard.nextInt(3);
         budget = hasard.nextInt(100-50) + 50;
         dayTime = hasard.nextInt(15-7) + 7;
         println("hello, I have a skill = " + skill);
@@ -189,7 +189,7 @@ public class UserAgent extends GuiAgent {
                 if (cheapestPartStore != null) {
                     buyPart(cheapestPartStore, partToRepair);
                     budget = budget - lowestPartPrice;
-                    println("J'ai acheté la partie : " + partToRepair.getName() + " à " + cheapestPartStore.getLocalName() + ", il me reste " + budget);
+                    println("J'ai acheté la partie : " + partToRepair.getName() + " à " + cheapestPartStore.getLocalName() + ", il me reste " + String.format("%.2f",budget) + "€");
                 }
             } else {
                 double lowestProductPrice = Double.MAX_VALUE; // Initialiser le prix le plus bas avec une valeur maximale possible
@@ -206,21 +206,21 @@ public class UserAgent extends GuiAgent {
                     send(requestProductPrice);
                     ACLMessage replyProductPrice = blockingReceive((MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM), MessageTemplate.MatchConversationId("Ask-Product-Price"))));
                     if (replyProductPrice != null) {
-                        Double replyContent = null;
+                        Double replyProductContent = null;
                         try {
-                            replyContent = (Double) replyProductPrice.getContentObject();
+                            replyProductContent = (Double) replyProductPrice.getContentObject();
                         } catch (UnreadableException e) {
                             throw new RuntimeException(e);
                         }
                         String distributor = aid.getLocalName();
-                        if (replyContent > 0){
-                            println("The distributor " + distributor + "  have the product at the price : " + String.format("%.2f",replyContent) + "€");
-                            if (replyContent < lowestProductPrice) {
-                                lowestProductPrice = replyContent; // Mettre à jour le prix le plus bas
+                        if (replyProductContent > 0){
+                            println("The distributor " + distributor + "  have the product at the price : " + String.format("%.2f",replyProductContent) + "€");
+                            if (replyProductContent < lowestProductPrice) {
+                                lowestProductPrice = replyProductContent; // Mettre à jour le prix le plus bas
                                 cheapestDistributor = aid; // Mettre à jour le partStore avec le prix le plus bas
                             }
                         }
-                        else if (replyContent < 0){
+                        else if (replyProductContent < 0){
                             println("The distributor " + cheapestDistributor + "  don't have the product");
                         }
                     } else {
@@ -231,7 +231,7 @@ public class UserAgent extends GuiAgent {
                 if (cheapestDistributor != null) {
                     buyProduct(cheapestDistributor, selectedProductType);
                     budget = budget - lowestProductPrice;
-                    println("J'ai acheté la partie : " + partToRepair.getName() + " à " + cheapestDistributor.getLocalName() + ", il me reste " + budget);
+                    println("J'ai acheté le produit complet : " + partToRepair.getName() + " à " + cheapestDistributor.getLocalName() + ", il me reste " + String.format("%.2f",budget) + "€");
                 }
             }
         }
