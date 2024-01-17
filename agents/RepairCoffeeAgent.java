@@ -32,7 +32,8 @@ public class RepairCoffeeAgent extends AgentWindowed {
     @Override
     public void setup(){
         this.window = new SimpleWindow4Agent(getLocalName(),this);
-        this.window.setBackgroundTextColor(Color.orange);
+        Color customColor = new Color(255, 159, 60);
+        this.window.setBackgroundTextColor(customColor);
         println("hello, do you want coffee ?");
         var hasard = new Random();
         specialities = new ArrayList<>();
@@ -62,6 +63,7 @@ public class RepairCoffeeAgent extends AgentWindowed {
                             throw new RuntimeException(e);
                         }
                         Part faultyPart = analyseProduct(productToRepair);
+                        Integer breakdownLevel = productToRepair.getDefault().getBreakdownLevel();
                         ACLMessage reply = message.createReply();
                         reply.setPerformative(ACLMessage.INFORM);
                         reply.setConversationId("Faulty-Part");

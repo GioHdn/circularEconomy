@@ -88,7 +88,7 @@ public class Part implements Serializable {
         return type;
     }
 
-    public int getbreakdownLevel() { return breakdownLevel; }
+    public int getBreakdownLevel() { return breakdownLevel; }
 
     /**check the creation of the list of parts (used by the part stores).
      * (you can store the creation in a file and reload it later)*/

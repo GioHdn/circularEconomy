@@ -11,7 +11,7 @@ public enum ProductType implements Serializable {
     Mouse (1,30), screen(3,150), coffeeMaker(2,50),
     washingMachine(4,300), dishwasher(4,300), vacuumCleaner(3,100);
     int nbParts;
-    double standardPrice;
+    public double standardPrice;
 
     ProductType(int nbParts, double standardPrice){
         this.nbParts = nbParts;

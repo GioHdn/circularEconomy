@@ -53,6 +53,9 @@ public class LaunchSimu {
         for(int i=0; i<2; i++) {
             agents.append("partStore~").append(i).append(":handsOn.circularEconomy.agents.PartStoreAgent;");
         }
+        for(int i=0; i<3; i++) {
+            agents.append("Distributors~").append(i).append(":handsOn.circularEconomy.agents.DistributorAgent;");
+        }
         pp.setProperty(Profile.AGENTS, agents.toString());
         // create a default Profile
         var pMain = new ProfileImpl(pp);
