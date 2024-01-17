@@ -81,36 +81,7 @@ public class UserAgent extends GuiAgent {
                 // Envoyer une requête à chaque agent repair-coffee
                 println("J'ai ce niveau de compétence : " + skill + " je n'ai pas trouvé la panne.");
                 println("-".repeat(30));
-                AID closestRepairCoffee = null;
-                LocalDate closestDate = LocalDate.MAX;
-                for (AID aid : coffees) {
-                    ACLMessage requestMessage = new ACLMessage(ACLMessage.REQUEST);
-                    requestMessage.setContent(selectedProductType.toString());
-                    requestMessage.addReceiver(aid);
-                    requestMessage.setConversationId("Appointment");
-                    send(requestMessage);
-                    ACLMessage reply = blockingReceive((MessageTemplate.MatchPerformative(ACLMessage.INFORM)));
-                    if (reply != null) {
-                        String replyContent = reply.getContent();
-                        String[] contentParts = replyContent.split(": ");
-                        if (contentParts.length == 2) {
-                            String repairCoffee = aid.getLocalName();
-                            String dateContent = contentParts[1];
-                            try {
-                                proposedDate = LocalDate.parse(dateContent, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-                                println("Repair coffee " + repairCoffee + " proposes a repair date of " + proposedDate);
-                                if (proposedDate.isBefore(closestDate)) {
-                                    closestDate = proposedDate;
-                                    closestRepairCoffee = aid;
-                                }
-                            } catch (DateTimeParseException e) {
-                                println("Invalid date format in the reply from " + repairCoffee);
-                            }
-                        } else {
-                            println("Repair coffee " + aid.getLocalName() + " cannot repair");
-                        }
-                    }
-                }
+                AID closestRepairCoffee = requestAppointmentRepairCoffee(coffees, selectedProductType);
                 if (closestRepairCoffee != null) {
                     println("Selected repair coffee: " + closestRepairCoffee.getLocalName());
                     ACLMessage requestFaultyPart = new ACLMessage(ACLMessage.REQUEST);
@@ -266,5 +237,39 @@ public class UserAgent extends GuiAgent {
             throw new RuntimeException(e);
         }
         send(replyMessage);
+    }
+
+    public AID requestAppointmentRepairCoffee(AID[] coffees, ProductType selectedProductType){
+        AID closestRepairCoffee = null;
+        LocalDate closestDate = LocalDate.MAX;
+        for (AID aid : coffees) {
+            ACLMessage requestMessage = new ACLMessage(ACLMessage.REQUEST);
+            requestMessage.setContent(selectedProductType.toString());
+            requestMessage.addReceiver(aid);
+            requestMessage.setConversationId("Appointment");
+            send(requestMessage);
+            ACLMessage reply = blockingReceive((MessageTemplate.MatchPerformative(ACLMessage.INFORM)));
+            if (reply != null) {
+                String replyContent = reply.getContent();
+                String[] contentParts = replyContent.split(": ");
+                if (contentParts.length == 2) {
+                    String repairCoffee = aid.getLocalName();
+                    String dateContent = contentParts[1];
+                    try {
+                        proposedDate = LocalDate.parse(dateContent, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                        println("Repair coffee " + repairCoffee + " proposes a repair date of " + proposedDate);
+                        if (proposedDate.isBefore(closestDate)) {
+                            closestDate = proposedDate;
+                            closestRepairCoffee = aid;
+                        }
+                    } catch (DateTimeParseException e) {
+                        println("Invalid date format in the reply from " + repairCoffee);
+                    }
+                } else {
+                    println("Repair coffee " + aid.getLocalName() + " cannot repair");
+                }
+            }
+        }
+        return closestRepairCoffee;
     }
 }
