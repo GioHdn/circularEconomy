@@ -31,8 +31,20 @@ public class PartStoreAgent extends AgentWindowed {
         this.window = new SimpleWindow4Agent(getLocalName(),this);
         Color customColor = new Color(58, 135, 84);
         this.window.setBackgroundTextColor(customColor);
-        AgentServicesTools.register(this, "repair", "partstore");
-        println("hello, I'm just registered as a parts-store");
+        boolean sellUsedParts = new Random().nextDouble() >= 0.5;
+        String productCondition = sellUsedParts ? "used" : "new";
+        double maxDiscountPercentage = 0;
+        double minDiscountPercentage = 1;
+        if (productCondition == "used"){
+            AgentServicesTools.register(this, "repair", "used-partstore");
+            println("Hello, I'm just registered as a second hand partstore");
+            maxDiscountPercentage = -0.3;
+            minDiscountPercentage = 0.8;
+        }else{
+            AgentServicesTools.register(this, "repair", "new-partstore");
+            println("Hello, I'm just registered as a new partstore");
+        }
+        println("I sell " + productCondition + " parts.");
         println("do you want some special parts ?");
         Random hasard = new Random();
         parts = new ArrayList<>();
@@ -40,7 +52,8 @@ public class PartStoreAgent extends AgentWindowed {
         while (parts.size() < 10) {
             for (Part p : existingParts) {
                 if (hasard.nextBoolean()) {
-                    parts.add(new Part(p.getName(), p.getType(), p.getStandardPrice() * (1 + Math.random() * 0.3), p.getBreakdownLevel()));
+                    double randomDiscount = maxDiscountPercentage * Math.random();
+                    parts.add(new Part(p.getName(), p.getType(), p.getStandardPrice() * (minDiscountPercentage + randomDiscount), p.getBreakdownLevel()));
                 }
                 if (parts.size() == 10) {
                     break;

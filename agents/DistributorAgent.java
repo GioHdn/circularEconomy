@@ -27,14 +27,21 @@ public class DistributorAgent extends AgentWindowed {
         this.window = new SimpleWindow4Agent(getLocalName(), this);
         Color customColor = new Color(58, 94, 135);
         this.window.setBackgroundTextColor(customColor);
-        AgentServicesTools.register(this, "repair", "distributor");
-        println("Hello, I'm just registered as a distributor");
-
         // Randomly decide whether to sell new or used products
         boolean sellUsedProducts = new Random().nextDouble() >= 0.5;
-        String productType = sellUsedProducts ? "used" : "new";
-        double maxDiscountPercentage = -0.3; // Maximum discount for used products
-        println("I sell " + productType + " products.");
+        String productCondition = sellUsedProducts ? "used" : "new";
+        double maxDiscountPercentage = 0;
+        double minDiscountPercentage = 1;
+        if (productCondition == "used"){
+            AgentServicesTools.register(this, "repair", "used-distributor");
+            println("Hello, I'm just registered as a second hand distributor");
+            maxDiscountPercentage = -0.3;
+            minDiscountPercentage = 0.8;
+        }else{
+            AgentServicesTools.register(this, "repair", "new-distributor");
+            println("Hello, I'm just registered as a new distributor");
+        }
+        println("I sell " + productCondition + " products.");
 
         // Create a list of parts with prices adjusted based on whether they are new or used
         products = new ArrayList<>();
@@ -42,7 +49,7 @@ public class DistributorAgent extends AgentWindowed {
 
         for (ProductType type : ProductType.values()) {
             double randomDiscount = maxDiscountPercentage * Math.random();
-            double adjustedPrice = type.getStandardPrice() * (1.0 + randomDiscount);
+            double adjustedPrice = type.getStandardPrice() * (minDiscountPercentage + randomDiscount);
 
             // Créer une nouvelle instance de Product avec le prix ajusté
             Product adjustedProduct = new Product(type + "-" + products.size(), type);
