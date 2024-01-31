@@ -29,6 +29,7 @@ import java.util.Random;
  * */
 public class RepairCoffeeAgent extends AgentWindowed {
     List<ProductType> specialities;
+    int distanceFromUser;
     @Override
     public void setup(){
         this.window = new SimpleWindow4Agent(getLocalName(),this);
@@ -36,12 +37,14 @@ public class RepairCoffeeAgent extends AgentWindowed {
         this.window.setBackgroundTextColor(customColor);
         println("hello, do you want coffee ?");
         var hasard = new Random();
+        var distanceFromUser = hasard.nextInt(10000-5000)+5000;
         specialities = new ArrayList<>();
         for(ProductType type : ProductType.values())
             if(hasard.nextBoolean()) specialities.add(type);
         //we need at least one speciality
         if(specialities.isEmpty()) specialities.add(ProductType.values()[hasard.nextInt(ProductType.values().length)]);
         println("I have these specialities : ");
+        println("I am " + distanceFromUser + " meters away from User House");
         specialities.forEach(p->println("\t"+p));
         //registration to the yellow pages (Directory Facilitator Agent)
         AgentServicesTools.register(this, "repair", "coffee");
@@ -54,7 +57,7 @@ public class RepairCoffeeAgent extends AgentWindowed {
                     if(Objects.equals(message.getConversationId(), "Appointment")) {
                         ProductType requestedProductType = ProductType.valueOf(message.getContent());
                         boolean canRepair = isAbleToRepair(requestedProductType);
-                        sendReplyToUser(message.getSender(), canRepair);
+                        sendReplyToUser(message.getSender(), canRepair, distanceFromUser);
                     }else if(Objects.equals(message.getConversationId(), "Faulty-Part")) {
                         Product productToRepair;
                         try {
@@ -89,14 +92,14 @@ public class RepairCoffeeAgent extends AgentWindowed {
         return specialities.contains(productType);
     }
     // Méthode pour envoyer la réponse à l'utilisateur
-    public void sendReplyToUser(AID userAgent, boolean canRepair) {
+    public void sendReplyToUser(AID userAgent, boolean canRepair, int distanceFromUser) {
         ACLMessage replyMessage = new ACLMessage(ACLMessage.INFORM);
         replyMessage.addReceiver(userAgent);
         if (canRepair) {
-            LocalDate proposedDate = LocalDate.now().plusDays(new Random().nextInt(10)+1);
+            LocalDate proposedDate = LocalDate.now().plusDays(new Random().nextInt(1)+1);
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             String formattedDate = proposedDate.format(formatter);
-            replyMessage.setContent("Repair coffee can handle the repair. Proposed date: " + formattedDate);
+            replyMessage.setContent("Repair coffee can handle the repair. Proposed date: " + formattedDate + ": distance from user :" + distanceFromUser);
         } else {
             replyMessage.setContent("Repair coffee cannot handle the repair.");
         }

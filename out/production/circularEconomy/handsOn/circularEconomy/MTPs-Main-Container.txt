@@ -1,1 +1,1 @@
-http://LAPTOP-HOERB8MH.mshome.net:7778/acc
+http://LAPTOP-HOERB8MH.home:7778/acc
