@@ -70,6 +70,7 @@ public class UserAgent extends GuiAgent {
             println("J'ai un budget = " + budget + "€");
             println("J'ai " + dayTime + " jours pour réparer mon objet");
             boolean wantConditionProducts = new Random().nextDouble() >= 0.5;
+            boolean findRepairCoffee = false;
             String productCondition = wantConditionProducts ? "occasion" : "neuf";
             AID[] distributors;
             AID[] partStores;
@@ -92,6 +93,7 @@ public class UserAgent extends GuiAgent {
                 println("-".repeat(30));
                 AID closestRepairCoffee = requestAppointmentRepairCoffee(coffees, selectedProductType);
                 if (closestRepairCoffee != null) {
+                    findRepairCoffee = true;
                     println("Repair coffee choisi: " + closestRepairCoffee.getLocalName());
                     partToRepair = askPartToRepair(closestRepairCoffee, selectedProduct);
                     budget = budget - 5;
@@ -107,17 +109,23 @@ public class UserAgent extends GuiAgent {
                     dayTime -= 3;
                     println("Jours restants avant l'abandon : " + dayTime);
                 } else {
-                        println("J'ai reçu une réponse vide pour la pièce à réparer");
+                    println("Aucun repair Coffee ne peut prendre en charge mon objet ! :'( ");
                 }
             } else {
                 println("J'ai les compétences pour détecter la panne moi même et j'ai trouvé cette panne :" + partToRepair);
             }
-            if (partToRepair.getBreakdownLevel() < 4) {
+            if (findRepairCoffee && partToRepair.getBreakdownLevel() < 4) {
                 double lowestPartPrice = Double.MAX_VALUE; // Initialiser le prix le plus bas avec une valeur maximale possible
                 AID cheapestPartStore = null; // Garder une trace du partStore avec le prix le plus bas
                 if (partStores.length == 0) {
-                    println("Il n'y a pas de partStore qui vend des pièces avec la condition que je souhaite");
+                    println("Il n'y a pas de partStore qui vend des pièces " + productCondition + " j'essaye de regarder ailleurs..");
+                    if (productCondition.equals("occasion")){
+                        partStores = AgentServicesTools.searchAgents(this, "repair", "new-partstore");
+                    }else{
+                        partStores = AgentServicesTools.searchAgents(this, "repair", "used-partstore");
+                    }
                 }
+                if (partStores.length == 0) { println("Aucun distributeur n'a mon objet");}
                 for (AID aid : partStores) {
                     ACLMessage requestFaultyPartPrice = new ACLMessage(ACLMessage.REQUEST);
                     try {
@@ -175,7 +183,7 @@ public class UserAgent extends GuiAgent {
                                 println("Je n'ai pas les moyens (temps ou budget) de réparer le produit, j'abandonne...");
                             }
                         } else {
-                            println("Je n'ai pas reçu de réponse pour la partie cassée");
+                            println("Aucun repair Coffee ne peut réparer mon objet ! :( ");
                         }
                     }
                 }
@@ -184,8 +192,14 @@ public class UserAgent extends GuiAgent {
                 double lowestProductPrice = Double.MAX_VALUE; // Initialiser le prix le plus bas avec une valeur maximale possible
                 AID cheapestDistributor = null; // Garder une trace du partStore avec le prix le plus bas
                 if (distributors.length == 0) {
-                    println("Il n'y a pas de distributeur qui vend des objets avec la condition que je souhaite");
+                    println("Il n'y a pas de distributeur qui vend des objets " + productCondition + " j'essaye de regarder ailleurs..");
+                    if (productCondition.equals("occasion")){
+                        distributors = AgentServicesTools.searchAgents(this, "repair", "new-distributor");
+                    }else{
+                        distributors = AgentServicesTools.searchAgents(this, "repair", "used-distributor");
+                    }
                 }
+                if (distributors.length == 0) { println("Aucun distributeur n'a mon objet");}
                 for (AID aid : distributors) {
                     ACLMessage requestProductPrice = new ACLMessage(ACLMessage.REQUEST);
                     try {
@@ -284,10 +298,13 @@ public class UserAgent extends GuiAgent {
                 if (contentParts.length >= 2) {
                     String repairCoffee = aid.getLocalName();
                     String dateContent = contentParts[1];
+                    int positivAnswer;
+                    positivAnswer = 0;
                     int distanceFromUser = Integer.valueOf(replyContent.substring(replyContent.length()-4));
                     try {
                         proposedDate = LocalDate.parse(dateContent, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                         println("Repair coffee " + repairCoffee + " propose une date " + proposedDate + " / " + distanceFromUser + "mètres à parcourir");
+                        positivAnswer++;
                         if ((proposedDate.isEqual(closestDate))){
                             if (closestDistanceFromUser > distanceFromUser){
                                 closestRepairCoffee = aid;
@@ -299,6 +316,9 @@ public class UserAgent extends GuiAgent {
                         }
                     } catch (DateTimeParseException e) {
                         println(" Error date format " + repairCoffee);
+                    }
+                    if (positivAnswer == 0){
+                        println("Aucun repair coffee ne peut prendre en charge mon objet, j'abandonne..");
                     }
                 } else {
                     println("Repair coffee " + aid.getLocalName() + " ne peut pas réparer l'objet");

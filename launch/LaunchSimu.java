@@ -47,7 +47,7 @@ public class LaunchSimu {
         for(int i=0; i<1; i++) {
             agents.append("user~").append(i).append(":handsOn.circularEconomy.agents.UserAgent;");
         }
-        for(int i=0; i<4; i++) {
+        for(int i=0; i<2; i++) {
             agents.append("repairCoffee~").append(i).append(":handsOn.circularEconomy.agents.RepairCoffeeAgent;");
         }
         for(int i=0; i<2; i++) {
